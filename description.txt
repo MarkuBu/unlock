@@ -1,0 +1,1 @@
+Unlock chests and doors unless in protected area.
