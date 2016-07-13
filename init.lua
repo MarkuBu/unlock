@@ -168,3 +168,52 @@ minetest.override_item("doors:door_steel_b", {
 		door_toggle(pos, clicker)
 	end
 })
+
+function trapdoor_toggle(pos, clicker)
+	if clicker and not minetest.check_player_privs(clicker, "protection_bypass") and minetest.is_protected(pos, clicker:get_player_name()) then
+		local meta = minetest.get_meta(pos)
+		local owner = meta:get_string("doors_owner")
+		if owner ~= "" then
+			if clicker:get_player_name() ~= owner then
+				return false
+			end
+		end
+	end
+
+	local node = minetest.get_node(pos)
+	local def = minetest.registered_nodes[node.name]
+
+	if string.sub(node.name, -5) == "_open" then
+		minetest.sound_play(def.sound_close, {pos = pos, gain = 0.3, max_hear_distance = 10})
+		minetest.swap_node(pos, {name = string.sub(node.name, 1, string.len(node.name) - 5), param1 = node.param1, param2 = node.param2})
+	else
+		minetest.sound_play(def.sound_open, {pos = pos, gain = 0.3, max_hear_distance = 10})
+		minetest.swap_node(pos, {name = node.name .. "_open", param1 = node.param1, param2 = node.param2})
+	end
+end
+
+minetest.override_item("doors:trapdoor_steel", {
+	can_dig = function(pos, digger)
+		if minetest.is_protected(pos, digger:get_player_name()) then
+			return false
+		else
+			return true
+		end
+	end,
+	on_rightclick = function(pos, node, clicker)
+		trapdoor_toggle(pos, clicker)
+	end
+})
+
+minetest.override_item("doors:trapdoor_steel_open", {
+	can_dig = function(pos, digger)
+		if minetest.is_protected(pos, digger:get_player_name()) then
+			return false
+		else
+			return true
+		end
+	end,
+	on_rightclick = function(pos, node, clicker)
+		trapdoor_toggle(pos, clicker)
+	end
+})
